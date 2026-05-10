@@ -4,12 +4,12 @@ Simple [DXF](https://en.wikipedia.org/wiki/AutoCAD_DXF) writer.
 
 ## Installing
 ```
-npm install @hendriksen-mark/dxf-writer
+npm install @markhhh/dxf-writer
 ```
 
 ## Node.js example
 ```javascript
-const { NodeJsDrawing: Drawing } = require('@hendriksen-mark/dxf-writer');
+const { NodeJsDrawing: Drawing } = require('@markhhh/dxf-writer');
 const fs = require('fs');
 
 async function main() {
@@ -93,7 +93,7 @@ Example preview in LibreCAD:
 3 line type out of the box (CONTINUOUS, DASHED, DOTTED) with the ability to add a custom line type.
 
 ```javascript
-const { BrowserFriendlyDrawing: Drawing, StringWritableStream } = require('@propelleraero/dxf-writer');
+const { BrowserFriendlyDrawing: Drawing, StringWritableStream } = require('@markhhh/dxf-writer');
 
 let d = new Drawing(new StringWritableStream());
 d.addLineType('DASHDOT', '_ . _ ', [0.5, -0.5, 0.0, -0.5]);

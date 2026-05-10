@@ -1,4 +1,4 @@
-declare module '@hendriksen-mark/dxf-writer' {
+declare module '@markhhh/dxf-writer' {
   type Unit =
     | 'Unitless'
     | 'Inches'
