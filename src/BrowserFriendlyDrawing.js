@@ -247,8 +247,8 @@ class BrowserFriendlyDrawing {
   }
 
   /**
-   * Draw a lean HELIX entity using only core HELIX tags.
-   * This is intended for testing AutoCAD-native helix interpretation.
+   * Draw a lean HELIX entity with reduced spline sampling.
+   * This stays DXF-valid while producing fewer control points.
    */
   async drawHelixLean(
     axisBasePoint,
@@ -259,7 +259,8 @@ class BrowserFriendlyDrawing {
     handedness = 1,
     constrainType = 0,
     majorReleaseNumber = 29,
-    maintenanceReleaseNumber = 63
+    maintenanceReleaseNumber = 63,
+    segmentsPerTurn = 72
   ) {
     await this._activeLayer.writeShape(
       this._modelSpace,
@@ -273,7 +274,8 @@ class BrowserFriendlyDrawing {
         handedness,
         constrainType,
         majorReleaseNumber,
-        maintenanceReleaseNumber
+        maintenanceReleaseNumber,
+        segmentsPerTurn
       )
     );
     return this;
