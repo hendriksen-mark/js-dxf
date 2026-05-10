@@ -46,8 +46,6 @@ class HelixLean extends DatabaseObject {
         this.constrainType = normalized.constrainType;
         this.majorReleaseNumber = normalized.majorReleaseNumber;
         this.maintenanceReleaseNumber = normalized.maintenanceReleaseNumber;
-        // Lean mode prioritizes exact geometric fidelity for radius/turns.
-        // High-resolution linear spline avoids cubic overshoot artifacts.
         this.degree = 1;
         this.type = 0;
 
@@ -100,7 +98,6 @@ class HelixLean extends DatabaseObject {
         }
 
         await manager.push(100, "AcDbHelix");
-
         await manager.push(90, this.majorReleaseNumber);
         await manager.push(91, this.maintenanceReleaseNumber);
 
@@ -142,8 +139,6 @@ function normalizeHelixLeanArgs({
     maintenanceReleaseNumber,
     segmentsPerTurn,
 }) {
-    // Backward compatibility for older signature:
-    // (axisBasePoint, startPoint, axisVector, radius, turns, turnHeight, handedness, constrainType, majorRelease, maintenanceRelease)
     const looksLegacyOrdering =
         Number.isFinite(turns) &&
         Number.isFinite(turnHeight) &&
@@ -160,8 +155,6 @@ function normalizeHelixLeanArgs({
     let resolvedSegmentsPerTurn = segmentsPerTurn;
 
     if (looksLegacyOrdering) {
-        // Shift one position to the right; the radius argument is intentionally ignored
-        // because startPoint already determines geometric radius.
         resolvedTurns = turnHeight;
         resolvedTurnHeight = handedness;
         resolvedHandedness = constrainType;

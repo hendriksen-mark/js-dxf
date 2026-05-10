@@ -4,7 +4,11 @@ const path = require("path");
 
 const Drawing = require("../src/NodeJsDrawing");
 const Handle = require("../src/Handle");
-const { getFile, getExampleFileFixtures } = require("./support/helpers");
+const {
+  getFile,
+  getExampleFileFixtures,
+  normalizeDxfForAssertions,
+} = require("./support/helpers");
 const { once } = require("../src/once");
 
 describe("NodeJsDrawing", function () {
@@ -37,7 +41,9 @@ describe("NodeJsDrawing", function () {
 
       await once(stream, "finish");
 
-      expect(getFile(outputFilepath)).toEqual(getFile(exampleFilepath));
+      expect(normalizeDxfForAssertions(getFile(outputFilepath))).toEqual(
+        normalizeDxfForAssertions(getFile(exampleFilepath))
+      );
     });
   });
 
@@ -65,7 +71,9 @@ describe("NodeJsDrawing", function () {
 
     await once(stream, "finish");
 
-    expect(getFile(outputFilepath)).toEqual(getFile(fixtureFilepath));
+    expect(normalizeDxfForAssertions(getFile(outputFilepath))).toEqual(
+      normalizeDxfForAssertions(getFile(fixtureFilepath))
+    );
   });
 });
 

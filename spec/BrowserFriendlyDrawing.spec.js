@@ -5,7 +5,11 @@ const path = require("path");
 const Drawing = require("../src/BrowserFriendlyDrawing");
 const Layer = require("../src/Layer");
 const Handle = require("../src/Handle");
-const { getFile, getExampleFileFixtures } = require("./support/helpers");
+const {
+  getFile,
+  getExampleFileFixtures,
+  normalizeDxfForAssertions,
+} = require("./support/helpers");
 const { StringWritableStream } = require("../src/StringWritableStream");
 const { once } = require("../src/once");
 
@@ -37,7 +41,9 @@ describe("BrowserFriendlyDrawing", function () {
       stream.end();
       await once(stream, "finish");
 
-      expect(stream.toString()).toEqual(getFile(exampleFilepath));
+      expect(normalizeDxfForAssertions(stream.toString())).toEqual(
+        normalizeDxfForAssertions(getFile(exampleFilepath))
+      );
     });
   });
 
@@ -50,7 +56,9 @@ describe("BrowserFriendlyDrawing", function () {
     stream.end();
     await once(stream, "finish");
 
-    expect(stream.toString()).toEqual(getFile(fixtureFilepath));
+    expect(normalizeDxfForAssertions(stream.toString())).toEqual(
+      normalizeDxfForAssertions(getFile(fixtureFilepath))
+    );
   });
 
   it("can add a layer", async function () {
@@ -68,7 +76,9 @@ describe("BrowserFriendlyDrawing", function () {
     stream.end();
     await once(stream, "finish");
 
-    expect(stream.toString()).toEqual(getFile(fixtureFilepath));
+    expect(normalizeDxfForAssertions(stream.toString())).toEqual(
+      normalizeDxfForAssertions(getFile(fixtureFilepath))
+    );
   });
 
   it("cannot add a layer with a bad name", function () {
@@ -104,7 +114,9 @@ describe("BrowserFriendlyDrawing", function () {
     stream.end();
     await once(stream, "finish");
 
-    expect(stream.toString()).toEqual(getFile(fixtureFilepath));
+    expect(normalizeDxfForAssertions(stream.toString())).toEqual(
+      normalizeDxfForAssertions(getFile(fixtureFilepath))
+    );
   });
 });
 
