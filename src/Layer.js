@@ -38,7 +38,6 @@ class Layer extends DatabaseObject {
         await manager.push(70, 0);
 
         if (this.lineTypeName) await manager.push(6, this.lineTypeName);
-
     }
 
     setTrueColor(color) {

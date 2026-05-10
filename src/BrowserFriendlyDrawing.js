@@ -639,8 +639,8 @@ class BrowserFriendlyDrawing {
     this._modelSpace = this.addBlock('*Model_Space');
     this.addBlock('*Paper_Space');
 
-    const d = new Dictionary();
-    this._dictionary.addChildDictionary('ACAD_GROUP', d);
+    const groupDictionary = new Dictionary();
+    this._dictionary.addChildDictionary('ACAD_GROUP', groupDictionary);
   }
 
   /**
