@@ -20,6 +20,7 @@ class Layer extends DatabaseObject {
         this.lineTypeName = lineTypeName;
         this.shapes = [];
         this.trueColor = -1;
+        this.plotStyleNameHandle = "0";
     }
 
     /**
@@ -38,6 +39,11 @@ class Layer extends DatabaseObject {
         await manager.push(70, 0);
 
         if (this.lineTypeName) await manager.push(6, this.lineTypeName);
+
+        /* Hard-pointer handle to PlotStyleName object; seems mandatory, but any value seems OK,
+         * including 0.
+         */
+        await manager.push(390, this.plotStyleNameHandle);
     }
 
     setTrueColor(color) {

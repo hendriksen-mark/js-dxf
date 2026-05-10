@@ -196,6 +196,8 @@ AcDbLayerTableRecord
 0
 6
 CONTINUOUS
+390
+0
 0
 LAYER
 5
@@ -214,6 +216,8 @@ inscribed_polygon
 0
 6
 CONTINUOUS
+390
+0
 0
 LAYER
 5
@@ -232,6 +236,8 @@ circumscribed_polygon
 0
 6
 CONTINUOUS
+390
+0
 0
 ENDTAB
 0

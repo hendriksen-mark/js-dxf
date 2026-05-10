@@ -210,7 +210,7 @@ class AppId extends DatabaseObject {
 
 module.exports = AppId;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],3:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],3:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -250,7 +250,7 @@ class Arc extends DatabaseObject {
 
 module.exports = Arc;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],4:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],4:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -288,7 +288,7 @@ class Block extends DatabaseObject {
 
 module.exports = Block;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],5:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],5:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -318,7 +318,7 @@ class BlockRecord extends DatabaseObject {
 
 module.exports = BlockRecord;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],6:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],6:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -351,7 +351,7 @@ class Circle extends DatabaseObject {
 
 module.exports = Circle;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],7:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],7:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -407,7 +407,7 @@ class Cylinder extends DatabaseObject {
 
 module.exports = Cylinder;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],8:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],8:[function(require,module,exports){
 const Handle = require("./Handle");
 const TagsManager = require("./TagsManager");
 
@@ -441,7 +441,7 @@ class DatabaseObject {
 
 module.exports = DatabaseObject;
 
-},{"./Handle":13,"./TagsManager":25}],9:[function(require,module,exports){
+},{"./Handle":13,"./TagsManager":27}],9:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -488,7 +488,7 @@ class Dictionary extends DatabaseObject {
 
 module.exports = Dictionary;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],10:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],10:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const Table = require("./Table");
 const TagsManager = require("./TagsManager");
@@ -522,7 +522,7 @@ class DimStyleTable extends Table {
 
 module.exports = DimStyleTable;
 
-},{"./DatabaseObject":8,"./Table":24,"./TagsManager":25}],11:[function(require,module,exports){
+},{"./DatabaseObject":8,"./Table":26,"./TagsManager":27}],11:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -570,7 +570,7 @@ class Ellipse extends DatabaseObject {
 
 module.exports = Ellipse;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],12:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],12:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -618,7 +618,7 @@ class Face extends DatabaseObject {
 
 module.exports = Face;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],13:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],13:[function(require,module,exports){
 class Handle {
     static seed = 0;
 
@@ -640,11 +640,14 @@ module.exports = Handle;
 },{}],14:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
+const {
+    buildHelixControlPoints,
+    createUniformKnotsLegacy,
+} = require("./HelixSplineSupport");
 
 const DEFAULT_MAJOR_RELEASE_NUMBER = 29;
 const DEFAULT_MAINTENANCE_RELEASE_NUMBER = 63;
 const DEFAULT_SEGMENTS_PER_TURN = 12;
-const TAU = Math.PI * 2;
 
 class Helix extends DatabaseObject {
     /**
@@ -694,27 +697,23 @@ class Helix extends DatabaseObject {
         this.degree = 3;
         this.type = 0;
 
-        const axisDirection = normalizeVector(this.axisVector, "axisVector");
-        const startOffset = subtractVectors(this.startPoint, this.axisBasePoint);
-        const startHeight = dotProduct(startOffset, axisDirection);
-        const startHeightOffset = scaleVector(axisDirection, startHeight);
-        const radialVector = subtractVectors(startOffset, startHeightOffset);
-        const radius = magnitude(radialVector);
+        const splineData = buildHelixControlPoints({
+            axisBasePoint: this.axisBasePoint,
+            startPoint: this.startPoint,
+            axisVector: this.axisVector,
+            turns: this.turns,
+            turnHeight: this.turnHeight,
+            handedness: this.handedness,
+            degree: this.degree,
+            segmentsPerTurn,
+        });
 
-        if (radius === 0) {
-            throw new Error("Helix startPoint must not lie on the helix axis.");
-        }
-
-        this.radius = radius;
-        this._axisDirection = axisDirection;
-        this._radialDirection = normalizeVector(radialVector, "startPoint");
-        this._perpendicularDirection = normalizeVector(
-            crossProduct(this._axisDirection, this._radialDirection),
-            "helix perpendicular direction"
+        this.radius = splineData.radius;
+        this.controlPoints = splineData.controlPoints;
+        this.knots = createUniformKnotsLegacy(
+            this.controlPoints.length,
+            this.degree
         );
-        this._startHeight = startHeight;
-        this.controlPoints = this._buildControlPoints(segmentsPerTurn);
-        this.knots = createUniformKnots(this.controlPoints.length, this.degree);
     }
 
     /**
@@ -771,37 +770,140 @@ class Helix extends DatabaseObject {
         await manager.push(290, this.handedness);
         await manager.push(280, this.constrainType);
     }
+}
 
-    _buildControlPoints(segmentsPerTurn) {
-        const points = [];
-        const pointCount = Math.max(
-            Math.ceil(this.turns * segmentsPerTurn) + 1,
-            this.degree + 1
+function toPoint3d(point, name) {
+    if (!Array.isArray(point) || point.length !== 3) {
+        throw new Error(`${name} must be a 3D point in the form [x, y, z].`);
+    }
+
+    return [point[0], point[1], point[2]];
+}
+
+module.exports = Helix;
+
+},{"./DatabaseObject":8,"./HelixSplineSupport":16,"./TagsManager":27}],15:[function(require,module,exports){
+const DatabaseObject = require("./DatabaseObject");
+const {
+    buildHelixControlPoints,
+    createUniformKnotsLegacy,
+} = require("./HelixSplineSupport");
+
+const DEFAULT_MAJOR_RELEASE_NUMBER = 29;
+const DEFAULT_MAINTENANCE_RELEASE_NUMBER = 63;
+const DEFAULT_SEGMENTS_PER_TURN = 72;
+
+class HelixLean extends DatabaseObject {
+    /**
+     * Lean HELIX writer that still emits required spline data,
+     * but with fewer control points than the full HELIX implementation.
+     */
+    constructor(
+        axisBasePoint,
+        startPoint,
+        axisVector,
+        turns,
+        turnHeight,
+        handedness = 1,
+        constrainType = 0,
+        majorReleaseNumber = DEFAULT_MAJOR_RELEASE_NUMBER,
+        maintenanceReleaseNumber = DEFAULT_MAINTENANCE_RELEASE_NUMBER,
+        segmentsPerTurn = DEFAULT_SEGMENTS_PER_TURN
+    ) {
+        super(["AcDbEntity", "AcDbSpline"]);
+
+        const normalized = normalizeHelixLeanArgs({
+            turns,
+            turnHeight,
+            handedness,
+            constrainType,
+            majorReleaseNumber,
+            maintenanceReleaseNumber,
+            segmentsPerTurn,
+        });
+
+        this.axisBasePoint = toPoint3d(axisBasePoint, "axisBasePoint");
+        this.startPoint = toPoint3d(startPoint, "startPoint");
+        this.axisVector = toPoint3d(axisVector, "axisVector");
+        this.turns = normalized.turns;
+        this.turnHeight = normalized.turnHeight;
+        this.handedness = normalized.handedness;
+        this.constrainType = normalized.constrainType;
+        this.majorReleaseNumber = normalized.majorReleaseNumber;
+        this.maintenanceReleaseNumber = normalized.maintenanceReleaseNumber;
+        this.degree = 1;
+        this.type = 0;
+
+        const splineData = buildHelixControlPoints({
+            axisBasePoint: this.axisBasePoint,
+            startPoint: this.startPoint,
+            axisVector: this.axisVector,
+            turns: this.turns,
+            turnHeight: this.turnHeight,
+            handedness: this.handedness,
+            degree: this.degree,
+            segmentsPerTurn: normalized.segmentsPerTurn,
+        });
+
+        this.radius = splineData.radius;
+        this.controlPoints = splineData.controlPoints;
+        this.knots = createUniformKnotsLegacy(
+            this.controlPoints.length,
+            this.degree
         );
-        const handednessSign = this.handedness === 0 ? -1 : 1;
-        const totalAngle = TAU * this.turns;
+    }
 
-        for (let i = 0; i < pointCount; i++) {
-            const ratio = pointCount === 1 ? 0 : i / (pointCount - 1);
-            const angle = totalAngle * ratio;
-            const radialComponent = addVectors(
-                scaleVector(this._radialDirection, Math.cos(angle)),
-                scaleVector(
-                    this._perpendicularDirection,
-                    Math.sin(angle) * handednessSign
-                )
-            );
-            const height = this._startHeight + this.turnHeight * angle / TAU;
-            const axisComponent = scaleVector(this._axisDirection, height);
-            const point = addVectors(
-                this.axisBasePoint,
-                addVectors(scaleVector(radialComponent, this.radius), axisComponent)
-            );
+    async tags(manager) {
+        await manager.push(0, "HELIX");
+        await super.tags(manager);
+        await manager.push(8, this.layer.name);
 
-            points.push(point);
+        await manager.push(210, 0.0);
+        await manager.push(220, 0.0);
+        await manager.push(230, 1.0);
+
+        await manager.push(70, this.type);
+        await manager.push(71, this.degree);
+        await manager.push(72, this.knots.length);
+        await manager.push(73, this.controlPoints.length);
+        await manager.push(74, 0);
+
+        await manager.push(42, 1e-7);
+        await manager.push(43, 1e-7);
+        await manager.push(44, 1e-10);
+
+        for (const knot of this.knots) {
+            await manager.push(40, knot);
         }
 
-        return points;
+        for (const point of this.controlPoints) {
+            await manager.push(10, point[0]);
+            await manager.push(20, point[1]);
+            await manager.push(30, point[2]);
+        }
+
+        await manager.push(100, "AcDbHelix");
+        await manager.push(90, this.majorReleaseNumber);
+        await manager.push(91, this.maintenanceReleaseNumber);
+
+        await manager.push(10, this.axisBasePoint[0]);
+        await manager.push(20, this.axisBasePoint[1]);
+        await manager.push(30, this.axisBasePoint[2]);
+
+        await manager.push(11, this.startPoint[0]);
+        await manager.push(21, this.startPoint[1]);
+        await manager.push(31, this.startPoint[2]);
+
+        await manager.push(12, this.axisVector[0]);
+        await manager.push(22, this.axisVector[1]);
+        await manager.push(32, this.axisVector[2]);
+
+        await manager.push(40, this.radius);
+        await manager.push(41, this.turns);
+        await manager.push(42, this.turnHeight);
+
+        await manager.push(290, this.handedness);
+        await manager.push(280, this.constrainType);
     }
 }
 
@@ -813,23 +915,80 @@ function toPoint3d(point, name) {
     return [point[0], point[1], point[2]];
 }
 
-function createUniformKnots(controlPointCount, degree) {
-    const knots = [];
+function normalizeHelixLeanArgs({
+    turns,
+    turnHeight,
+    handedness,
+    constrainType,
+    majorReleaseNumber,
+    maintenanceReleaseNumber,
+    segmentsPerTurn,
+}) {
+    const looksLegacyOrdering =
+        Number.isFinite(turns) &&
+        Number.isFinite(turnHeight) &&
+        Number.isFinite(handedness) &&
+        ![0, 1].includes(handedness) &&
+        [0, 1, 2].includes(constrainType);
 
-    for (let i = 0; i < degree + 1; i++) {
-        knots.push(0);
+    let resolvedTurns = turns;
+    let resolvedTurnHeight = turnHeight;
+    let resolvedHandedness = handedness;
+    let resolvedConstrainType = constrainType;
+    let resolvedMajorReleaseNumber = majorReleaseNumber;
+    let resolvedMaintenanceReleaseNumber = maintenanceReleaseNumber;
+    let resolvedSegmentsPerTurn = segmentsPerTurn;
+
+    if (looksLegacyOrdering) {
+        resolvedTurns = turnHeight;
+        resolvedTurnHeight = handedness;
+        resolvedHandedness = constrainType;
+        resolvedConstrainType = majorReleaseNumber;
+        resolvedMajorReleaseNumber = maintenanceReleaseNumber;
+        resolvedMaintenanceReleaseNumber =
+            Number.isFinite(segmentsPerTurn)
+                ? segmentsPerTurn
+                : DEFAULT_MAINTENANCE_RELEASE_NUMBER;
+        resolvedSegmentsPerTurn = DEFAULT_SEGMENTS_PER_TURN;
     }
 
-    for (let i = 1; i < controlPointCount - degree; i++) {
-        knots.push(i);
+    if (!Number.isFinite(resolvedTurns) || resolvedTurns <= 0) {
+        throw new Error("Helix turns must be greater than zero.");
     }
 
-    for (let i = 0; i < degree + 1; i++) {
-        knots.push(controlPointCount - degree);
+    if (!Number.isFinite(resolvedTurnHeight)) {
+        throw new Error("Helix turnHeight must be a finite number.");
     }
 
-    return knots;
+    if (![0, 1].includes(resolvedHandedness)) {
+        throw new Error("Helix handedness must be 0 (left) or 1 (right).");
+    }
+
+    if (![0, 1, 2].includes(resolvedConstrainType)) {
+        throw new Error(
+            "Helix constrainType must be 0 (turn height), 1 (turns), or 2 (height)."
+        );
+    }
+
+    if (!Number.isFinite(resolvedSegmentsPerTurn) || resolvedSegmentsPerTurn < 1) {
+        throw new Error("Helix segmentsPerTurn must be greater than zero.");
+    }
+
+    return {
+        turns: resolvedTurns,
+        turnHeight: resolvedTurnHeight,
+        handedness: resolvedHandedness,
+        constrainType: resolvedConstrainType,
+        majorReleaseNumber: resolvedMajorReleaseNumber,
+        maintenanceReleaseNumber: resolvedMaintenanceReleaseNumber,
+        segmentsPerTurn: resolvedSegmentsPerTurn,
+    };
 }
+
+module.exports = HelixLean;
+
+},{"./DatabaseObject":8,"./HelixSplineSupport":16}],16:[function(require,module,exports){
+const TAU = Math.PI * 2;
 
 function subtractVectors(a, b) {
     return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -869,9 +1028,89 @@ function normalizeVector(vector, name) {
     return scaleVector(vector, 1 / length);
 }
 
-module.exports = Helix;
+function buildHelixControlPoints({
+    axisBasePoint,
+    startPoint,
+    axisVector,
+    turns,
+    turnHeight,
+    handedness,
+    degree,
+    segmentsPerTurn,
+}) {
+    const axisDirection = normalizeVector(axisVector, "axisVector");
+    const startOffset = subtractVectors(startPoint, axisBasePoint);
+    const startHeight = dotProduct(startOffset, axisDirection);
+    const startHeightOffset = scaleVector(axisDirection, startHeight);
+    const radialVector = subtractVectors(startOffset, startHeightOffset);
+    const radius = magnitude(radialVector);
 
-},{"./DatabaseObject":8,"./TagsManager":25}],15:[function(require,module,exports){
+    if (radius === 0) {
+        throw new Error("Helix startPoint must not lie on the helix axis.");
+    }
+
+    const radialDirection = normalizeVector(radialVector, "startPoint");
+    const perpendicularDirection = normalizeVector(
+        crossProduct(axisDirection, radialDirection),
+        "helix perpendicular direction"
+    );
+
+    const points = [];
+    const pointCount = Math.max(
+        Math.ceil(turns * segmentsPerTurn) + 1,
+        degree + 1
+    );
+
+    const handednessSign = handedness === 0 ? -1 : 1;
+    const totalAngle = TAU * turns;
+
+    for (let i = 0; i < pointCount; i++) {
+        const ratio = pointCount === 1 ? 0 : i / (pointCount - 1);
+        const angle = totalAngle * ratio;
+        const radialComponent = addVectors(
+            scaleVector(radialDirection, Math.cos(angle)),
+            scaleVector(perpendicularDirection, Math.sin(angle) * handednessSign)
+        );
+        const height = startHeight + turnHeight * angle / TAU;
+        const axisComponent = scaleVector(axisDirection, height);
+        const point = addVectors(
+            axisBasePoint,
+            addVectors(scaleVector(radialComponent, radius), axisComponent)
+        );
+
+        points.push(point);
+    }
+
+    return {
+        radius,
+        controlPoints: points,
+    };
+}
+
+function createUniformKnotsLegacy(controlPointCount, degree) {
+    const knots = [];
+
+    for (let i = 0; i < degree + 1; i++) {
+        knots.push(0);
+    }
+
+    for (let i = 1; i < controlPointCount - degree; i++) {
+        knots.push(i);
+    }
+
+    for (let i = 0; i < degree + 1; i++) {
+        knots.push(controlPointCount - degree);
+    }
+
+    return knots;
+}
+
+module.exports = {
+    buildHelixControlPoints,
+    createUniformKnotsLegacy,
+};
+
+},{}],17:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 
 const LAYER_NAME_BANNED_REGEX = /<|>|\/|\\|"|:|;|\?|\*|\||=|'/g;
@@ -894,6 +1133,7 @@ class Layer extends DatabaseObject {
         this.lineTypeName = lineTypeName;
         this.shapes = [];
         this.trueColor = -1;
+        this.plotStyleNameHandle = "0";
     }
 
     /**
@@ -916,7 +1156,7 @@ class Layer extends DatabaseObject {
         /* Hard-pointer handle to PlotStyleName object; seems mandatory, but any value seems OK,
          * including 0.
          */
-        await manager.push(390, 1);
+        await manager.push(390, this.plotStyleNameHandle);
     }
 
     setTrueColor(color) {
@@ -938,7 +1178,7 @@ class Layer extends DatabaseObject {
 
 module.exports = Layer;
 
-},{"./DatabaseObject":8}],16:[function(require,module,exports){
+},{"./DatabaseObject":8}],18:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -970,7 +1210,7 @@ class Line extends DatabaseObject {
 
 module.exports = Line;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],17:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],19:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1004,7 +1244,7 @@ class Line3d extends DatabaseObject {
 
 module.exports = Line3d;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],18:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],20:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1051,7 +1291,7 @@ class LineType extends DatabaseObject {
 
 module.exports = LineType;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],19:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],21:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1113,7 +1353,7 @@ class Mesh extends DatabaseObject {
 
 module.exports = Mesh;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],20:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],22:[function(require,module,exports){
 const DatabaseObject = require('./DatabaseObject');
 const TagsManager = require('./TagsManager');
 
@@ -1140,7 +1380,7 @@ class Point extends DatabaseObject {
 
 module.exports = Point;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],21:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],23:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1189,7 +1429,7 @@ class Polyline extends DatabaseObject {
 
 module.exports = Polyline;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],22:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],24:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const Handle = require("./Handle");
 const Vertex = require("./Vertex");
@@ -1236,7 +1476,7 @@ class Polyline3d extends DatabaseObject {
 
 module.exports = Polyline3d;
 
-},{"./DatabaseObject":8,"./Handle":13,"./TagsManager":25,"./Vertex":28}],23:[function(require,module,exports){
+},{"./DatabaseObject":8,"./Handle":13,"./TagsManager":27,"./Vertex":30}],25:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1359,7 +1599,7 @@ class Spline extends DatabaseObject {
 
 module.exports = Spline;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],24:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],26:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1396,7 +1636,7 @@ class Table extends DatabaseObject {
 
 module.exports = Table;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],25:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],27:[function(require,module,exports){
 const { once } = require('./once');
 
 const DEFAULT_WRITE_CHUNK_SIZE = 2000;
@@ -1476,7 +1716,7 @@ class TagsManager {
 
 module.exports = TagsManager;
 
-},{"./once":30}],26:[function(require,module,exports){
+},{"./once":32}],28:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1548,7 +1788,7 @@ class Text extends DatabaseObject {
 
 module.exports = Text;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],27:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],29:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1582,7 +1822,7 @@ class TextStyle extends DatabaseObject {
 
 module.exports = TextStyle;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],28:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],30:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1616,7 +1856,7 @@ class Vertex extends DatabaseObject {
 
 module.exports = Vertex;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],29:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],31:[function(require,module,exports){
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
 
@@ -1644,7 +1884,7 @@ class Viewport extends DatabaseObject {
 
 module.exports = Viewport;
 
-},{"./DatabaseObject":8,"./TagsManager":25}],30:[function(require,module,exports){
+},{"./DatabaseObject":8,"./TagsManager":27}],32:[function(require,module,exports){
 module.exports = {
   once: function (target, eventName) {
     return new Promise((resolve, reject) => {
@@ -1707,6 +1947,7 @@ const Ellipse = require('./Ellipse');
 const Face = require('./Face');
 const Handle = require('./Handle');
 const Helix = require('./Helix');
+const HelixLean = require('./HelixLean');
 const Layer = require('./Layer');
 const Line = require('./Line');
 const Line3d = require('./Line3d');
@@ -1907,6 +2148,7 @@ class BrowserFriendlyDrawing {
    * @param {number | undefined} constrainType - 0 = turn height, 1 = turns, 2 = height
    * @param {number | undefined} majorReleaseNumber - AcDbHelix major release number
    * @param {number | undefined} maintenanceReleaseNumber - AcDbHelix maintenance release number
+   * @param {number | undefined} segmentsPerTurn - Number of control points generated per turn
    * @returns {Promise<this>}
    */
   async drawHelix(
@@ -1918,7 +2160,8 @@ class BrowserFriendlyDrawing {
     handedness = 1,
     constrainType = 0,
     majorReleaseNumber = 29,
-    maintenanceReleaseNumber = 63
+    maintenanceReleaseNumber = 63,
+    segmentsPerTurn = 12
   ) {
     await this._activeLayer.writeShape(
       this._modelSpace,
@@ -1932,7 +2175,43 @@ class BrowserFriendlyDrawing {
         handedness,
         constrainType,
         majorReleaseNumber,
-        maintenanceReleaseNumber
+        maintenanceReleaseNumber,
+        segmentsPerTurn
+      )
+    );
+    return this;
+  }
+
+  /**
+   * Draw a lean HELIX entity with reduced spline sampling.
+   * This stays DXF-valid while producing fewer control points.
+   */
+  async drawHelixLean(
+    axisBasePoint,
+    startPoint,
+    axisVector,
+    turns,
+    turnHeight,
+    handedness = 1,
+    constrainType = 0,
+    majorReleaseNumber = 29,
+    maintenanceReleaseNumber = 63,
+    segmentsPerTurn = 72
+  ) {
+    await this._activeLayer.writeShape(
+      this._modelSpace,
+      this._tempShapes.tagsManager,
+      new HelixLean(
+        axisBasePoint,
+        startPoint,
+        axisVector,
+        turns,
+        turnHeight,
+        handedness,
+        constrainType,
+        majorReleaseNumber,
+        maintenanceReleaseNumber,
+        segmentsPerTurn
       )
     );
     return this;
@@ -2296,8 +2575,8 @@ class BrowserFriendlyDrawing {
     this._modelSpace = this.addBlock('*Model_Space');
     this.addBlock('*Paper_Space');
 
-    const d = new Dictionary();
-    this._dictionary.addChildDictionary('ACAD_GROUP', d);
+    const groupDictionary = new Dictionary();
+    this._dictionary.addChildDictionary('ACAD_GROUP', groupDictionary);
   }
 
   /**
@@ -2492,7 +2771,7 @@ BrowserFriendlyDrawing.UNITS = {
 
 module.exports = BrowserFriendlyDrawing;
 
-},{"./AppId":2,"./Arc":3,"./Block":4,"./BlockRecord":5,"./Circle":6,"./Cylinder":7,"./Dictionary":9,"./DimStyleTable":10,"./Ellipse":11,"./Face":12,"./Handle":13,"./Helix":14,"./Layer":15,"./Line":16,"./Line3d":17,"./LineType":18,"./Mesh":19,"./Point":20,"./Polyline":21,"./Polyline3d":22,"./Spline":23,"./StringWritableStream":"StringWritableStream","./Table":24,"./TagsManager":25,"./Text":26,"./TextStyle":27,"./Vertex":28,"./Viewport":29,"./once":30}],"StringWritableStream":[function(require,module,exports){
+},{"./AppId":2,"./Arc":3,"./Block":4,"./BlockRecord":5,"./Circle":6,"./Cylinder":7,"./Dictionary":9,"./DimStyleTable":10,"./Ellipse":11,"./Face":12,"./Handle":13,"./Helix":14,"./HelixLean":15,"./Layer":17,"./Line":18,"./Line3d":19,"./LineType":20,"./Mesh":21,"./Point":22,"./Polyline":23,"./Polyline3d":24,"./Spline":25,"./StringWritableStream":"StringWritableStream","./Table":26,"./TagsManager":27,"./Text":28,"./TextStyle":29,"./Vertex":30,"./Viewport":31,"./once":32}],"StringWritableStream":[function(require,module,exports){
 (function (process){(function (){
 const SUPPORTED_EVENTS = ['finish', 'error'];
 
@@ -2555,6 +2834,7 @@ class StringWritableStream {
 }
 
 module.exports = StringWritableStream;
+module.exports.StringWritableStream = StringWritableStream;
 
 }).call(this)}).call(this,require('_process'))
 },{"_process":1}]},{},[]);
