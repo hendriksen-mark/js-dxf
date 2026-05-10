@@ -39,10 +39,6 @@ class Layer extends DatabaseObject {
 
         if (this.lineTypeName) await manager.push(6, this.lineTypeName);
 
-        /* Hard-pointer handle to PlotStyleName object; seems mandatory, but any value seems OK,
-         * including 0.
-         */
-        await manager.push(390, 1);
     }
 
     setTrueColor(color) {
