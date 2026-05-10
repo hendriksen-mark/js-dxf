@@ -22,6 +22,7 @@ class Polyline3d extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3
         await manager.push(0, "POLYLINE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

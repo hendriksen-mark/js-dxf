@@ -38,7 +38,7 @@ class Text extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        //https://www.autodesk.com/techpubs/autocad/acadr14/dxf/text_al_u05_c.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-62E5383D-8A14-47B4-BFC4-35824CAE8363
         await manager.push(0, "TEXT");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

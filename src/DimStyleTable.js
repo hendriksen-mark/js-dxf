@@ -13,6 +13,7 @@ class DimStyleTable extends Table {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA
         await manager.push(0, "TABLE");
         await manager.push(2, this.name);
         await DatabaseObject.prototype.tags.call(this, manager);

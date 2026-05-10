@@ -5,25 +5,34 @@
     <script src="dxf_bundle.js"></script>
     <script>
         var Drawing = require('Drawing');
-        window.onload = function()
-        {
-            d = new Drawing();
+        var StringWritableStream = require('StringWritableStream');
+
+        window.onload = async function () {
+            var stream = new StringWritableStream();
+            var d = new Drawing(stream);
 
             // d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
             // d.addLayer('l_green', Drawing.ACI.GREEN, 'CONTINUOUS');
             // d.setActiveLayer('l_green');
-            d.drawSplineFromControlPoints([[0, 0], [50, 10,], [100,0]])
-            var b = new Blob([d.toDxfString()], {type: 'application/dxf'});
+            await d.drawSpline([[0, 0], [50, 10], [100, 0]]);
+
+            await d.end();
+            stream.end();
+
+            var b = new Blob([stream.toString()], {type: 'application/dxf'});
             document.getElementById('dxf').href = URL.createObjectURL(b);
-        }
+        };
     </script>
 </head>
 <body>
     <pre>
-            let d = new Drawing();
+            const stream = new StringWritableStream();
+            let d = new Drawing(stream);
 
-            d.drawSplineFromControlPoints([[0, 0], [50, 10,], [100,0]])
-            var b = new Blob([d.toDxfString()], {type: 'application/dxf'});
+            await d.drawSpline([[0, 0], [50, 10], [100, 0]]);
+            await d.end();
+            stream.end();
+            var b = new Blob([stream.toString()], {type: 'application/dxf'});
             document.getElementById('dxf').href = URL.createObjectURL(b);
     </pre>
 <a href="" id="dxf" download="demo.dxf">demo.dxf</a>

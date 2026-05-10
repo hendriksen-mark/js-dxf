@@ -12,6 +12,7 @@ class AppId extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-6E3140E9-E560-4C77-904E-480382F0553E
         await manager.push(0, "APPID");
         await super.tags(manager);
         await manager.push(2, this.name);

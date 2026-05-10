@@ -23,7 +23,7 @@ class Arc extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        //https://www.autodesk.com/techpubs/autocad/acadr14/dxf/line_al_u05_c.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-0B14D8F1-0EBA-44BF-9108-57D8CE614BC8
         await manager.push(0, "ARC");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

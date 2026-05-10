@@ -83,7 +83,7 @@ class Spline extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        // https://www.autodesk.com/techpubs/autocad/acad2000/dxf/spline_dxf_06.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-E1F884F8-AA90-4864-A215-3182D47A9C74
         await manager.push(0, "SPLINE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

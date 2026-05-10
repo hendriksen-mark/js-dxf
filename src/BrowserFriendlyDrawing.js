@@ -10,6 +10,7 @@ const DimStyleTable = require('./DimStyleTable');
 const Ellipse = require('./Ellipse');
 const Face = require('./Face');
 const Handle = require('./Handle');
+const Helix = require('./Helix');
 const Layer = require('./Layer');
 const Line = require('./Line');
 const Line3d = require('./Line3d');
@@ -194,6 +195,48 @@ class BrowserFriendlyDrawing {
         axisRatio,
         startAngle,
         endAngle
+      )
+    );
+    return this;
+  }
+
+  /**
+   * Draw a helix.
+   * @param {[number, number, number]} axisBasePoint - A point on the helix axis
+   * @param {[number, number, number]} startPoint - The helix start point
+   * @param {[number, number, number]} axisVector - The helix axis direction vector
+   * @param {number} turns - Number of turns
+   * @param {number} turnHeight - Height per turn
+   * @param {number | undefined} handedness - 0 = left, 1 = right
+   * @param {number | undefined} constrainType - 0 = turn height, 1 = turns, 2 = height
+   * @param {number | undefined} majorReleaseNumber - AcDbHelix major release number
+   * @param {number | undefined} maintenanceReleaseNumber - AcDbHelix maintenance release number
+   * @returns {Promise<this>}
+   */
+  async drawHelix(
+    axisBasePoint,
+    startPoint,
+    axisVector,
+    turns,
+    turnHeight,
+    handedness = 1,
+    constrainType = 0,
+    majorReleaseNumber = 29,
+    maintenanceReleaseNumber = 63
+  ) {
+    await this._activeLayer.writeShape(
+      this._modelSpace,
+      this._tempShapes.tagsManager,
+      new Helix(
+        axisBasePoint,
+        startPoint,
+        axisVector,
+        turns,
+        turnHeight,
+        handedness,
+        constrainType,
+        majorReleaseNumber,
+        maintenanceReleaseNumber
       )
     );
     return this;

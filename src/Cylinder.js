@@ -38,6 +38,7 @@ class Cylinder extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-8663262B-222C-414D-B133-4A8506A27C18
         await manager.push(0, "CIRCLE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

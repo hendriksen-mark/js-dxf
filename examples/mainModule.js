@@ -1,4 +1,5 @@
 const fs = require('fs');
+const NodeJsDrawing = require('../src/NodeJsDrawing');
 const { once } = require('../src/once');
 
 module.exports = async (drawFn) => {

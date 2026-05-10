@@ -38,6 +38,7 @@
     <script>
         var svg, sheet, width=600, height=600;
         var Drawing = require('Drawing');
+        var StringWritableStream = require('StringWritableStream');
         window.addEventListener('load', function(){
             sheet = document.getElementById('sheet');
             svg = SVG(sheet).size(width, height)
@@ -59,17 +60,21 @@
             return height/2 - parseInt(el.getAttribute(att))
         }
 
-        function toDxf() {
-            d = new Drawing();
+        async function toDxf() {
+            var stream = new StringWritableStream();
+            var d = new Drawing(stream);
             for(var line of Array.from(svg.node.getElementsByTagName('line'))) {
-                d.drawLine(getX(line,'x1'), getY(line,'y1'), getX(line,'x2'), getY(line, 'y2'))
+                await d.drawLine(getX(line,'x1'), getY(line,'y1'), getX(line,'x2'), getY(line, 'y2'))
             }
 
             for(var circle of Array.from(svg.node.getElementsByTagName('circle'))) {
-                d.drawCircle(getX(circle, 'cx'), getY(circle, 'cy'), circle.getAttribute('r'))
+                await d.drawCircle(getX(circle, 'cx'), getY(circle, 'cy'), circle.getAttribute('r'))
             }
 
-            var b = new Blob([d.toDxfString()], {type: 'application/dxf'});
+            await d.end();
+            stream.end();
+
+            var b = new Blob([stream.toString()], {type: 'application/dxf'});
             document.getElementById('toDxf').href = URL.createObjectURL(b);
             
         }

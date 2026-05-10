@@ -25,7 +25,7 @@ class VPort
 
     toDxfString()
     {
-        //https://www.autodesk.com/techpubs/autocad/acadr14/dxf/3dface_al_u05_c.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-8CE7CC87-27BD-4490-89DA-C21F516415A9
         let s = '';
         s += `0\nVPORT\n`;
         s += `2\n${this.name}\n`;

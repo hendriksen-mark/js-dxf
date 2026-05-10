@@ -14,7 +14,7 @@ class Point extends DatabaseObject {
    * @returns {Promise<void>}
    */
   async tags(manager) {
-    //https://www.autodesk.com/techpubs/autocad/acadr14/dxf/point_al_u05_c.htm
+    //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-9C6AD32D-769D-4213-85A4-CA9CCB5C5317
     await manager.push(0, 'POINT');
     await super.tags(manager);
     await manager.push(8, this.layer.name);

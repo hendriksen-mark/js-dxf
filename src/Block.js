@@ -14,6 +14,7 @@ class Block extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-66D32572-005A-4E23-8B8B-8726E8C14302
         await manager.push(0, "BLOCK");
         await super.tags(manager);
         await manager.push(2, this.name);

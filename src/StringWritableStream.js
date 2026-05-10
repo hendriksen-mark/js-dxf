@@ -59,3 +59,4 @@ class StringWritableStream {
 }
 
 module.exports = StringWritableStream;
+module.exports.StringWritableStream = StringWritableStream;

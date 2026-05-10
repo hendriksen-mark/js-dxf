@@ -19,7 +19,7 @@ class LineType extends DatabaseObject {
    * @returns {Promise<void>}
    */
   async tags(manager) {
-    // https://www.autodesk.com/techpubs/autocad/acadr14/dxf/ltype_al_u05_c.htm
+    //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-F57A316C-94A2-416C-8280-191E34B182AC
     await manager.push(0, "LTYPE");
     await super.tags(manager);
     await manager.push(2, this.name);

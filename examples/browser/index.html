@@ -5,40 +5,49 @@
     <script src="dxf_bundle.js"></script>
     <script>
         var Drawing = require('Drawing');
-        window.onload = function()
-        {
-            d = new Drawing();
+        var StringWritableStream = require('StringWritableStream');
+
+        window.onload = async function () {
+            var stream = new StringWritableStream();
+            var d = new Drawing(stream);
 
             d.setUnits('Decimeters');
-            d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
+            await d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
             d.addLayer('l_green', Drawing.ACI.GREEN, 'CONTINUOUS');
             d.setActiveLayer('l_green');
-            d.drawText(20, -70, 10, 0, 'go green!');
+            await d.drawText(20, -70, 10, 0, 'go green!');
 
             //or fluent
             d.addLayer('l_yellow', Drawing.ACI.YELLOW, 'DASHED')
-            .setActiveLayer('l_yellow')
-            .drawCircle(50, -30, 25);
+            .setActiveLayer('l_yellow');
+            await d.drawCircle(50, -30, 25);
 
-            var b = new Blob([d.toDxfString()], {type: 'application/dxf'});
+            await d.end();
+            stream.end();
+
+            var b = new Blob([stream.toString()], {type: 'application/dxf'});
             document.getElementById('dxf').href = URL.createObjectURL(b);
-        }
+        };
     </script>
 </head>
 <body>
     <pre>
-            let d = new Drawing();
+            const stream = new StringWritableStream();
+            let d = new Drawing(stream);
 
             d.setUnits('Decimeters');
-            d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
+            await d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
             d.addLayer('l_green', Drawing.ACI.GREEN, 'CONTINUOUS');
             d.setActiveLayer('l_green');
-            d.drawText(20, -70, 10, 0, 'go green!');
+            await d.drawText(20, -70, 10, 0, 'go green!');
 
             //or fluent
             d.addLayer('l_yellow', Drawing.ACI.YELLOW, 'DASHED')
-            .setActiveLayer('l_yellow')
-            .drawCircle(50, -30, 25);
+            .setActiveLayer('l_yellow');
+            await d.drawCircle(50, -30, 25);
+
+            await d.end();
+            stream.end();
     </pre>
 <a href="" id="dxf" download="demo.dxf">demo.dxf</a>
 </body>

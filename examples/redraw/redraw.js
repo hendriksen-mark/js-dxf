@@ -1,52 +1,67 @@
-const fs = require('fs')
-const join = require('path').join
+const fs = require('fs');
+const path = require('path');
 
-const DxfReader = require('dxf').Helper
-const DxfWriter = require('../../src/Drawing.js')
-
-const inputDxf = new DxfReader(fs.readFileSync('../data/octicons-cloud-download.dxf', 'utf-8'))
-const entities = inputDxf.parsed.entities
-
-const outputDxf = new DxfWriter()
+const DxfReader = require('dxf').Helper;
+const NodeJsDrawing = require('../../src/NodeJsDrawing');
+const { once } = require('../../src/once');
 
 function findBoundingBox(vertices) {
-    let xx = [], yy = []
-    for(let vertex of vertices)
-    {
-        xx.push(vertex[0])
-        yy.push(vertex[1])
-    }
-    return [Math.min(...xx), Math.max(...yy), Math.max(...xx), Math.min(...yy)]
-}
+    const xx = [];
+    const yy = [];
 
-
-//redraw original cloud
-for(let entity of entities) {
-    entity.array_vertices = [];
-    for(let vertex of entity.vertices)
-    {
-        entity.array_vertices.push([vertex.x, vertex.y]);
+    for (const vertex of vertices) {
+        xx.push(vertex[0]);
+        yy.push(vertex[1]);
     }
 
-    outputDxf.drawPolyline(entity.array_vertices);
+    return [Math.min(...xx), Math.max(...yy), Math.max(...xx), Math.min(...yy)];
 }
 
-//draw green dashed bounding box around the original
-let boundingBox = findBoundingBox([...entities[0].array_vertices, ...entities[1].array_vertices]);
-outputDxf.addLayer('l_green', DxfWriter.ACI.GREEN, 'DASHED')
-outputDxf.setActiveLayer('l_green')
-outputDxf.drawRect(...boundingBox)
+async function main() {
+    const inputPath = path.join(__dirname, '..', 'data', 'octicons-cloud-download.dxf');
+    const outputPath = __filename + '.dxf';
+    const inputDxf = new DxfReader(fs.readFileSync(inputPath, 'utf-8'));
+    const entities = inputDxf.parsed.entities;
 
-//draw a copy and move it to right
-outputDxf.setActiveLayer('0')
-let width = boundingBox[2] - boundingBox[0]
-for(let entity of entities) {
-    let movedVertices = [];
-    for(let vertex of entity.array_vertices)
-    {
-        movedVertices.push([vertex[0] + width, vertex[1]])
+    const stream = fs.createWriteStream(outputPath);
+    const outputDxf = new NodeJsDrawing(stream);
+
+    // Redraw original cloud.
+    for (const entity of entities) {
+        entity.array_vertices = [];
+        for (const vertex of entity.vertices) {
+            entity.array_vertices.push([vertex.x, vertex.y]);
+        }
+
+        await outputDxf.drawPolyline(entity.array_vertices);
     }
-    outputDxf.drawPolyline(movedVertices);
+
+    // Draw green dashed bounding box around the original.
+    const boundingBox = findBoundingBox([
+        ...entities[0].array_vertices,
+        ...entities[1].array_vertices,
+    ]);
+    outputDxf.addLayer('l_green', NodeJsDrawing.ACI.GREEN, 'DASHED');
+    outputDxf.setActiveLayer('l_green');
+    await outputDxf.drawRect(...boundingBox);
+
+    // Draw a copy and move it to the right.
+    outputDxf.setActiveLayer('0');
+    const width = boundingBox[2] - boundingBox[0];
+    for (const entity of entities) {
+        const movedVertices = [];
+        for (const vertex of entity.array_vertices) {
+            movedVertices.push([vertex[0] + width, vertex[1]]);
+        }
+        await outputDxf.drawPolyline(movedVertices);
+    }
+
+    await outputDxf.end();
+    stream.end();
+    await once(stream, 'finish');
 }
 
-fs.writeFileSync(__filename + '.dxf', outputDxf.toDxfString());
+main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+});

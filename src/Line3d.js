@@ -17,7 +17,7 @@ class Line3d extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        //https://www.autodesk.com/techpubs/autocad/acadr14/dxf/line_al_u05_c.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-FCEF5726-53AE-4C43-B4EA-C84EB8686A66
         await manager.push(0, "LINE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

@@ -13,6 +13,7 @@ class TextStyle extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9
         await manager.push(0, "STYLE");
         await super.tags(manager);
         await manager.push(2, this.name);

@@ -12,6 +12,7 @@ class BlockRecord extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A
         await manager.push(0, "BLOCK_RECORD");
         await super.tags(manager);
         await manager.push(2, this.name);

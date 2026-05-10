@@ -4,50 +4,59 @@ Simple [DXF](https://en.wikipedia.org/wiki/AutoCAD_DXF) writer.
 
 ## Installing
 ```
-npm install dxf-writer
+npm install @hendriksen-mark/dxf-writer
 ```
 
 ## Node.js example
 ```javascript
-const Drawing = require('dxf-writer');
+const { NodeJsDrawing: Drawing } = require('@hendriksen-mark/dxf-writer');
 const fs = require('fs');
 
-let d = new Drawing();
+async function main() {
+  const stream = fs.createWriteStream(__filename + '.dxf');
+  const d = new Drawing(stream);
 
-d.setUnits('Decimeters');
-d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
-d.addLayer('l_green', Drawing.ACI.GREEN, 'CONTINUOUS');
-d.setActiveLayer('l_green');
-d.drawText(20, -70, 10, 0, 'go green!');
+  d.setUnits('Decimeters');
+  await d.drawText(10, 0, 10, 0, 'Hello World'); // draw text in the default layer named "0"
+  d.addLayer('l_green', Drawing.ACI.GREEN, 'CONTINUOUS');
+  d.setActiveLayer('l_green');
+  await d.drawText(20, -70, 10, 0, 'go green!');
 
-//or fluent
-d.addLayer('l_yellow', Drawing.ACI.YELLOW, 'DOTTED')
- .setActiveLayer('l_yellow')
- .drawCircle(50, -30, 25);
+  d.addLayer('l_yellow', Drawing.ACI.YELLOW, 'DOTTED').setActiveLayer('l_yellow');
+  await d.drawCircle(50, -30, 25);
 
-fs.writeFileSync(__filename + '.dxf', d.toDxfString());
+  await d.end();
+  stream.end();
+}
+
+main().catch(console.error);
 ```
-Example preview in the LibreCAD:
-![exmple in LibreCAD](https://raw.githubusercontent.com/ognjen-petrovic/js-dxf/master/examples/demo.png "example in LibreCAD")
+Example preview in LibreCAD:
+![example in LibreCAD](https://raw.githubusercontent.com/hendriksen-mark/js-dxf/master/examples/demo.png "example in LibreCAD")
 
 ## Browser examples
 
- - [demo](//ognjen-petrovic.github.io/js-dxf/examples/browser/index.html)
+ - [demo](https://hendriksen-mark.github.io/js-dxf/examples/browser/index.html)
 
- - [editor](//ognjen-petrovic.github.io/js-dxf/examples/browser/editor/index.html)
+ - [editor](https://hendriksen-mark.github.io/js-dxf/examples/browser/editor/index.html)
 
-## Supported entities: 
- - arc 
+## Supported entities:
+ - arc
  - circle
+ - cylinder
  - ellipse
+ - face
+ - helix
  - line
+ - line 3D
+ - mesh
  - point
  - polygon
- - polyline 
- - polyline 3D 
+ - polyline
+ - polyline 3D
  - spline
  - text
- - 3DFace
+ - vertex
  
 ## Supported colors: 
  - red
@@ -84,6 +93,8 @@ Example preview in the LibreCAD:
 3 line type out of the box (CONTINUOUS, DASHED, DOTTED) with the ability to add a custom line type.
 
 ```javascript
-let d = new Drawing();
+const { BrowserFriendlyDrawing: Drawing, StringWritableStream } = require('@propelleraero/dxf-writer');
+
+let d = new Drawing(new StringWritableStream());
 d.addLineType('DASHDOT', '_ . _ ', [0.5, -0.5, 0.0, -0.5]);
 ```

@@ -17,7 +17,7 @@ class Mesh extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        // https://help.autodesk.com/view/ACD/2024/ENU/?guid=GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-4B9ADA67-87C8-4673-A579-6E4C76FF7025
         await manager.push(0, "MESH");
         await super.tags(manager);
         await manager.push(67, 0);

@@ -28,7 +28,7 @@ class Ellipse extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        // https://www.autodesk.com/techpubs/autocad/acadr14/dxf/ellipse_al_u05_c.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-107CB04F-AD4D-4D2F-8EC9-AC90888063AB
         await manager.push(0, "ELLIPSE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

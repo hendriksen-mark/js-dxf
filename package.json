@@ -1,5 +1,5 @@
 {
-  "name": "@propelleraero/dxf-writer",
+  "name": "@hendriksen-mark/dxf-writer",
   "version": "4.2.0",
   "description": "Dead simple 2D DXF writer",
   "main": "index.js",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "jasmine spec/*.spec.js",
-    "bundle": "browserify -r ./src/Drawing.js:Drawing > ./examples/browser/dxf_bundle.js"
+    "bundle": "browserify -r ./src/BrowserFriendlyDrawing.js:Drawing -r ./src/StringWritableStream.js:StringWritableStream > ./examples/browser/dxf_bundle.js"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "yarn test"
+      "pre-push": "npm test"
     }
   }
 }

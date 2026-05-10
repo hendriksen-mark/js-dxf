@@ -21,6 +21,7 @@ class Polyline extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-748FC305-F3F2-4F74-825A-61F04D757A50
         await manager.push(0, "LWPOLYLINE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

@@ -22,6 +22,7 @@ class Dictionary extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-40B92C63-26F0-485B-A9C2-B349099B26D0
         await manager.push(0, "DICTIONARY");
         await super.tags(manager);
         /* Duplicate record cloning flag - keep existing */

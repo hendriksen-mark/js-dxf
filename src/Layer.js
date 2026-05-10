@@ -27,6 +27,7 @@ class Layer extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB
         await manager.push(0, "LAYER");
         await super.tags(manager);
         await manager.push(2, this.name);

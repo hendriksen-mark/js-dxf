@@ -18,6 +18,7 @@ class Table extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-D8CCD2F0-18A3-42BB-A64D-539114A07DA0
         await manager.push(0, "TABLE");
         await manager.push(2, this.name);
         await super.tags(manager);

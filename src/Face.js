@@ -23,7 +23,7 @@ class Face extends DatabaseObject {
      * @returns {Promise<void>}
      */
     async tags(manager) {
-        //https://www.autodesk.com/techpubs/autocad/acadr14/dxf/3dface_al_u05_c.htm
+        //https://help.autodesk.com/view/OARX/2027/ENU/?guid=GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151
         await manager.push(0, "3DFACE");
         await super.tags(manager);
         await manager.push(8, this.layer.name);

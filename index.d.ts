@@ -1,4 +1,4 @@
-declare module '@propelleraero/dxf-writer' {
+declare module '@hendriksen-mark/dxf-writer' {
   type Unit =
     | 'Unitless'
     | 'Inches'
@@ -240,6 +240,32 @@ declare module '@propelleraero/dxf-writer' {
     constructor(vertices: number[][], faceIndices: number[][]);
   }
 
+  class Helix extends Taggable {
+    public axisBasePoint: Point3D;
+    public startPoint: Point3D;
+    public axisVector: Point3D;
+    public radius: number;
+    public turns: number;
+    public turnHeight: number;
+    public handedness: number;
+    public constrainType: number;
+    public majorReleaseNumber: number;
+    public maintenanceReleaseNumber: number;
+
+    constructor(
+      axisBasePoint: Point3D,
+      startPoint: Point3D,
+      axisVector: Point3D,
+      turns: number,
+      turnHeight: number,
+      handedness?: number,
+      constrainType?: number,
+      majorReleaseNumber?: number,
+      maintenanceReleaseNumber?: number,
+      segmentsPerTurn?: number
+    );
+  }
+
   type ACIKey =
     | 'LAYER'
     | 'RED'
@@ -343,6 +369,18 @@ declare module '@propelleraero/dxf-writer' {
       axisRatio: number,
       startAngle?: number,
       endAngle?: number
+    ): Promise<this>;
+
+    drawHelix(
+      axisBasePoint: Point3D,
+      startPoint: Point3D,
+      axisVector: Point3D,
+      turns: number,
+      turnHeight: number,
+      handedness?: number,
+      constrainType?: number,
+      majorReleaseNumber?: number,
+      maintenanceReleaseNumber?: number
     ): Promise<this>;
 
     drawFace(
