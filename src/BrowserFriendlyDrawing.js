@@ -11,6 +11,7 @@ const Ellipse = require('./Ellipse');
 const Face = require('./Face');
 const Handle = require('./Handle');
 const Helix = require('./Helix');
+const HelixLean = require('./HelixLean');
 const Layer = require('./Layer');
 const Line = require('./Line');
 const Line3d = require('./Line3d');
@@ -211,9 +212,45 @@ class BrowserFriendlyDrawing {
    * @param {number | undefined} constrainType - 0 = turn height, 1 = turns, 2 = height
    * @param {number | undefined} majorReleaseNumber - AcDbHelix major release number
    * @param {number | undefined} maintenanceReleaseNumber - AcDbHelix maintenance release number
+   * @param {number | undefined} segmentsPerTurn - Number of control points generated per turn
    * @returns {Promise<this>}
    */
   async drawHelix(
+    axisBasePoint,
+    startPoint,
+    axisVector,
+    turns,
+    turnHeight,
+    handedness = 1,
+    constrainType = 0,
+    majorReleaseNumber = 29,
+    maintenanceReleaseNumber = 63,
+    segmentsPerTurn = 12
+  ) {
+    await this._activeLayer.writeShape(
+      this._modelSpace,
+      this._tempShapes.tagsManager,
+      new Helix(
+        axisBasePoint,
+        startPoint,
+        axisVector,
+        turns,
+        turnHeight,
+        handedness,
+        constrainType,
+        majorReleaseNumber,
+        maintenanceReleaseNumber,
+        segmentsPerTurn
+      )
+    );
+    return this;
+  }
+
+  /**
+   * Draw a lean HELIX entity using only core HELIX tags.
+   * This is intended for testing AutoCAD-native helix interpretation.
+   */
+  async drawHelixLean(
     axisBasePoint,
     startPoint,
     axisVector,
@@ -227,7 +264,7 @@ class BrowserFriendlyDrawing {
     await this._activeLayer.writeShape(
       this._modelSpace,
       this._tempShapes.tagsManager,
-      new Helix(
+      new HelixLean(
         axisBasePoint,
         startPoint,
         axisVector,

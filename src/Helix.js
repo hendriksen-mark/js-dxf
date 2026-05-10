@@ -1,10 +1,13 @@
 const DatabaseObject = require("./DatabaseObject");
 const TagsManager = require("./TagsManager");
+const {
+    buildHelixControlPoints,
+    createUniformKnotsLegacy,
+} = require("./HelixSplineSupport");
 
 const DEFAULT_MAJOR_RELEASE_NUMBER = 29;
 const DEFAULT_MAINTENANCE_RELEASE_NUMBER = 63;
 const DEFAULT_SEGMENTS_PER_TURN = 12;
-const TAU = Math.PI * 2;
 
 class Helix extends DatabaseObject {
     /**
@@ -54,27 +57,23 @@ class Helix extends DatabaseObject {
         this.degree = 3;
         this.type = 0;
 
-        const axisDirection = normalizeVector(this.axisVector, "axisVector");
-        const startOffset = subtractVectors(this.startPoint, this.axisBasePoint);
-        const startHeight = dotProduct(startOffset, axisDirection);
-        const startHeightOffset = scaleVector(axisDirection, startHeight);
-        const radialVector = subtractVectors(startOffset, startHeightOffset);
-        const radius = magnitude(radialVector);
+        const splineData = buildHelixControlPoints({
+            axisBasePoint: this.axisBasePoint,
+            startPoint: this.startPoint,
+            axisVector: this.axisVector,
+            turns: this.turns,
+            turnHeight: this.turnHeight,
+            handedness: this.handedness,
+            degree: this.degree,
+            segmentsPerTurn,
+        });
 
-        if (radius === 0) {
-            throw new Error("Helix startPoint must not lie on the helix axis.");
-        }
-
-        this.radius = radius;
-        this._axisDirection = axisDirection;
-        this._radialDirection = normalizeVector(radialVector, "startPoint");
-        this._perpendicularDirection = normalizeVector(
-            crossProduct(this._axisDirection, this._radialDirection),
-            "helix perpendicular direction"
+        this.radius = splineData.radius;
+        this.controlPoints = splineData.controlPoints;
+        this.knots = createUniformKnotsLegacy(
+            this.controlPoints.length,
+            this.degree
         );
-        this._startHeight = startHeight;
-        this.controlPoints = this._buildControlPoints(segmentsPerTurn);
-        this.knots = createUniformKnots(this.controlPoints.length, this.degree);
     }
 
     /**
@@ -131,38 +130,6 @@ class Helix extends DatabaseObject {
         await manager.push(290, this.handedness);
         await manager.push(280, this.constrainType);
     }
-
-    _buildControlPoints(segmentsPerTurn) {
-        const points = [];
-        const pointCount = Math.max(
-            Math.ceil(this.turns * segmentsPerTurn) + 1,
-            this.degree + 1
-        );
-        const handednessSign = this.handedness === 0 ? -1 : 1;
-        const totalAngle = TAU * this.turns;
-
-        for (let i = 0; i < pointCount; i++) {
-            const ratio = pointCount === 1 ? 0 : i / (pointCount - 1);
-            const angle = totalAngle * ratio;
-            const radialComponent = addVectors(
-                scaleVector(this._radialDirection, Math.cos(angle)),
-                scaleVector(
-                    this._perpendicularDirection,
-                    Math.sin(angle) * handednessSign
-                )
-            );
-            const height = this._startHeight + this.turnHeight * angle / TAU;
-            const axisComponent = scaleVector(this._axisDirection, height);
-            const point = addVectors(
-                this.axisBasePoint,
-                addVectors(scaleVector(radialComponent, this.radius), axisComponent)
-            );
-
-            points.push(point);
-        }
-
-        return points;
-    }
 }
 
 function toPoint3d(point, name) {
@@ -171,62 +138,6 @@ function toPoint3d(point, name) {
     }
 
     return [point[0], point[1], point[2]];
-}
-
-function createUniformKnots(controlPointCount, degree) {
-    const knots = [];
-
-    for (let i = 0; i < degree + 1; i++) {
-        knots.push(0);
-    }
-
-    for (let i = 1; i < controlPointCount - degree; i++) {
-        knots.push(i);
-    }
-
-    for (let i = 0; i < degree + 1; i++) {
-        knots.push(controlPointCount - degree);
-    }
-
-    return knots;
-}
-
-function subtractVectors(a, b) {
-    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-}
-
-function addVectors(a, b) {
-    return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
-}
-
-function scaleVector(vector, scalar) {
-    return [vector[0] * scalar, vector[1] * scalar, vector[2] * scalar];
-}
-
-function dotProduct(a, b) {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-
-function crossProduct(a, b) {
-    return [
-        a[1] * b[2] - a[2] * b[1],
-        a[2] * b[0] - a[0] * b[2],
-        a[0] * b[1] - a[1] * b[0],
-    ];
-}
-
-function magnitude(vector) {
-    return Math.sqrt(dotProduct(vector, vector));
-}
-
-function normalizeVector(vector, name) {
-    const length = magnitude(vector);
-
-    if (length === 0) {
-        throw new Error(`${name} must not be a zero-length vector.`);
-    }
-
-    return scaleVector(vector, 1 / length);
 }
 
 module.exports = Helix;
