@@ -1,6 +1,6 @@
 {
   "name": "@markhhh/dxf-writer",
-  "version": "4.2.5",
+  "version": "4.3.0",
   "description": "Dead simple 2D DXF writer",
   "main": "index.js",
   "types": "./index.d.ts",
@@ -34,9 +34,9 @@
   },
   "homepage": "https://github.com/hendriksen-mark/js-dxf#readme",
   "devDependencies": {
-    "husky": "^1.1.0",
-    "jasmine": "^3.2.0",
-    "browserify": "^16.2.3",
+    "husky": "^9.1.7",
+    "jasmine": "^7.0.0",
+    "browserify": "^17.0.1",
     "minimist": ">=1.2.3"
   },
   "husky": {

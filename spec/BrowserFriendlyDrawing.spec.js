@@ -9,8 +9,9 @@ const {
   getFile,
   getExampleFileFixtures,
   normalizeDxfForAssertions,
+  parseHandles,
 } = require("./support/helpers");
-const { StringWritableStream } = require("../src/StringWritableStream");
+const StringWritableStream = require("../src/StringWritableStream");
 const { once } = require("../src/once");
 
 describe("BrowserFriendlyDrawing", function () {
@@ -89,6 +90,67 @@ describe("BrowserFriendlyDrawing", function () {
     expect(() =>
       d.addLayer("/!@<>", Drawing.ACI.GREEN, "MyDashed")
     ).toThrowError();
+  });
+
+  it("keeps $HANDSEED above every handle when end() races in-flight draws", async function () {
+    const stream = new StringWritableStream();
+    const d = new Drawing(stream);
+
+    d.addLayer("surface", Drawing.ACI.YELLOW, "CONTINUOUS");
+    d.setActiveLayer("surface");
+
+    const points = Array.from({ length: 40 }, (_, i) => [i, i, 9.768]);
+
+    // Simulates a caller bug: end() is invoked while draws are still in flight.
+    // Late draws are allowed to fail once the drawing has ended; silent
+    // handle corruption is what we guard against.
+    const drawEverything = (async () => {
+      for (let i = 0; i < 200; i++) {
+        await d.drawPolyline3d(points);
+      }
+    })().catch(() => {});
+
+    await d.end();
+    await drawEverything;
+
+    stream.end();
+    await once(stream, "finish");
+
+    const output = stream.toString();
+    const { handseed, maxHandle } = parseHandles(output);
+
+    expect(handseed).not.toBeNull();
+    expect(handseed).toBeGreaterThan(maxHandle);
+
+    // No half-written entities: every POLYLINE must be terminated by a SEQEND.
+    const lines = output.split("\n");
+    const polylineCount = lines.filter((l) => l === "POLYLINE").length;
+    const seqendCount = lines.filter((l) => l === "SEQEND").length;
+    expect(polylineCount).toEqual(seqendCount);
+  });
+
+  it("rejects draws made after end() has been called", async function () {
+    const stream = new StringWritableStream();
+    const d = new Drawing(stream);
+
+    const ended = d.end();
+
+    let error = null;
+    try {
+      await d.drawCircle(0, 0, 10);
+    } catch (e) {
+      error = e;
+    }
+
+    expect(error).not.toBeNull();
+    expect(error.message).toEqual("Cannot draw after end() has been called");
+
+    await ended;
+    stream.end();
+    await once(stream, "finish");
+
+    // The rejected draw must not leak into the output.
+    expect(stream.toString()).not.toContain("CIRCLE");
   });
 
   it("can draw a mesh", async function () {

@@ -18,6 +18,10 @@ class NodeJsDrawing extends BrowserFriendlyDrawing {
 
 
   async end() {
+    /* Draws that race end() would otherwise land with handles above the
+     * already-written $HANDSEED, producing a file AutoCAD discards. */
+    this._ended = true;
+    await this._pendingShapeWrites;
     const { tagsManager: headerTagsManager, filepath: headerFilepath, stream: headerStream } = this._createTemporaryTagsManager("header.dxf");
     await this._writeHeader(headerTagsManager);
     headerStream.end();
